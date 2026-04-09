@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING, cast
 
 import discord
 from discord.ext import commands
-from tortoise.exceptions import DoesNotExist
 
-from ballsdex.core.models import GuildConfig
-from ballsdex.packages.countryballs.countryball import BallSpawnView
-from ballsdex.packages.countryballs.spawn import BaseSpawnManager
-from ballsdex.settings import settings
+from bd_models.models import GuildConfig
+from settings.models import settings
+
+from .countryball import BallSpawnView
+from .spawn import BaseSpawnManager
 
 if TYPE_CHECKING:
     from ballsdex.core.bot import BallsDexBot
@@ -34,10 +34,10 @@ class CountryBallsSpawner(commands.Cog):
 
     async def load_cache(self):
         i = 0
-        async for config in GuildConfig.filter(enabled=True, spawn_channel__isnull=False).only(
+        async for config in GuildConfig.objects.filter(enabled=True, spawn_channel__isnull=False).only(
             "guild_id", "spawn_channel"
         ):
-            self.cache[config.guild_id] = config.spawn_channel
+            self.cache[config.guild_id] = cast(int, config.spawn_channel)
             i += 1
         grammar = "" if i == 1 else "s"
         log.info(f"Loaded {i} guild{grammar} in cache.")
@@ -72,12 +72,31 @@ class CountryBallsSpawner(commands.Cog):
         ball.algo = algo
         await ball.spawn(cast(discord.TextChannel, channel))
 
+    @commands.hybrid_command()
+    @commands.is_owner()
+    async def spawn(
+        self,
+        ctx: commands.Context["BallsDexBot"],
+        channel: discord.TextChannel | None = None,
+        rare: bool = False,
+    ):
+        """Force spawn a countryball. Set rare=True to only spawn balls with rarity 0.01-1.5."""
+        spawn_channel = channel or ctx.channel
+        if not isinstance(spawn_channel, discord.TextChannel):
+            await ctx.send("Can only spawn in a text channel.", ephemeral=True)
+            return
+        try:
+            ball = await BallSpawnView.get_random(self.bot, rare_only=rare)
+        except RuntimeError as e:
+            await ctx.send(f"Error: {e}", ephemeral=True)
+            return
+        await ball.spawn(spawn_channel)
+        tag = "rare " if rare else ""
+        await ctx.send(f"Spawned a {tag}{settings.collectible_name} in {spawn_channel.mention}!", ephemeral=True)
+
     @commands.Cog.listener()
     async def on_ballsdex_settings_change(
-        self,
-        guild: discord.Guild,
-        channel: discord.TextChannel | None = None,
-        enabled: bool | None = None,
+        self, guild: discord.Guild, channel: discord.TextChannel | None = None, enabled: bool | None = None
     ):
         if guild.id not in self.cache:
             if enabled is False:
@@ -86,11 +105,11 @@ class CountryBallsSpawner(commands.Cog):
                 self.cache[guild.id] = channel.id
             else:
                 try:
-                    config = await GuildConfig.get(guild_id=guild.id)
-                except DoesNotExist:
+                    config = await GuildConfig.objects.aget(guild_id=guild.id)
+                except GuildConfig.DoesNotExist:
                     return
                 else:
-                    self.cache[guild.id] = config.spawn_channel
+                    self.cache[guild.id] = cast(int, config.spawn_channel)
         else:
             if enabled is False:
                 del self.cache[guild.id]
