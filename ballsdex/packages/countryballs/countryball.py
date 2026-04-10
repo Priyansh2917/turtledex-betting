@@ -14,8 +14,8 @@ from django.utils import timezone
 from ballsdex.core.discord import Modal, View
 from ballsdex.core.metrics import caught_balls
 from ballsdex.core.utils.utils import can_mention
-from bd_models.models import Ball, BallInstance, Player, Special, Trade, TradeObject, balls, specials
-from settings.models import PromptMessage, settings
+from ballsdex.core.models import Ball, BallInstance, Player, PromptMessage, Special, Trade, TradeObject, balls, specials
+from ballsdex.settings import settings
 
 if TYPE_CHECKING:
     from ballsdex.core.bot import BallsDexBot

@@ -1,4 +1,5 @@
 import logging
+import random
 import sys
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -136,12 +137,25 @@ class Settings:
 
     catch_button_label: str = "Catch me!"
 
+    def get_random_message(self, type: "PromptMessage.PromptType") -> str:
+        from ballsdex.core.models import PromptMessage
+
+        if type == PromptMessage.PromptType.SPAWN:
+            return random.choice(self.spawn_messages)
+        elif type == PromptMessage.PromptType.CATCH:
+            return random.choice(self.caught_messages)
+        elif type == PromptMessage.PromptType.WRONG:
+            return random.choice(self.wrong_messages)
+        elif type == PromptMessage.PromptType.SLOW:
+            return random.choice(self.slow_messages)
+        return ""
+
 
 settings = Settings()
 
 
 def read_settings(path: "Path"):
-    content = yaml.load(path.read_text(), yaml.Loader)
+    content = yaml.load(path.read_text(encoding="utf-8"), yaml.Loader)
 
     settings.bot_token = content["discord-token"]
     settings.gateway_url = content.get("gateway-url")
@@ -398,12 +412,13 @@ catch:
   # the message that appears when a user is to slow to catch a ball
   slow_msgs:
     - "{user} Sorry, this {collectible} was caught already!"
-  """  # noqa: W291
+  """,  # noqa: W291
+        encoding="utf-8",
     )
 
 
 def update_settings(path: "Path"):
-    content = path.read_text()
+    content = path.read_text(encoding="utf-8")
 
     add_owners = True
     add_config_ref = "# yaml-language-server: $schema=json-config-ref.json" not in content
@@ -584,4 +599,4 @@ extra-django-apps:
             add_extra_models,
         )
     ):
-        path.write_text(content)
+        path.write_text(content, encoding="utf-8")

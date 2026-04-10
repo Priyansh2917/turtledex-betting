@@ -77,6 +77,17 @@ class GuildConfig(models.Model):
     )
 
 
+class PromptType(IntEnum):
+    SPAWN = 1
+    CATCH = 2
+    WRONG = 3
+    SLOW = 4
+
+
+class PromptMessage:
+    PromptType = PromptType
+
+
 class Regime(models.Model):
     name = fields.CharField(max_length=64)
     background = fields.CharField(max_length=200, description="1428x2000 PNG image")

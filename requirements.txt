@@ -1,0 +1,26 @@
+# Core dependencies
+discord.py[speed]==2.6.3
+tortoise-orm[asyncpg]==0.25.1
+tortoise-cli==0.1.2
+uvicorn[standard]==0.35.0
+django==5.2.8
+django-allow-cidr>=0.7.1,<0.8.0
+django-nonrelated-inlines==0.2
+django-admin-autocomplete-filter==0.7.1
+django-admin-action-forms==1.3.0
+django-admin-inline-paginator==0.4.0
+dj-database-url==2.3.0
+social-auth-app-django==5.5.1
+psycopg==3.2.9
+psycopg-binary==3.2.9
+prometheus-client==0.22.1
+rich==14.0.0
+python-dateutil==2.9.0
+Pillow==11.3.0
+pyyaml==6.0.2
+cachetools==6.1.0
+sentry-sdk[asyncpg]==2.33.0
+
+# Dev dependencies (required for admin_panel settings.dev)
+django-debug-toolbar==4.4.6
+pyinstrument==5.0.0
