@@ -58,6 +58,7 @@ class Balls(app_commands.Group):
         special: Special | None = None,
         atk_bonus: int | None = None,
         hp_bonus: int | None = None,
+        rare: bool = False,
     ):
         spawned = 0
 
@@ -81,7 +82,7 @@ class Balls(app_commands.Group):
         try:
             for i in range(n):
                 if not countryball:
-                    ball = await countryball_cls.get_random(interaction.client)
+                    ball = await countryball_cls.get_random(interaction.client, rare_only=rare)
                 else:
                     ball = countryball_cls(interaction.client, countryball)
                 ball.special = special
@@ -118,6 +119,7 @@ class Balls(app_commands.Group):
         special: SpecialTransform | None = None,
         atk_bonus: int | None = None,
         hp_bonus: int | None = None,
+        rare: bool = False,
     ):
         """
         Force spawn a random or specified countryball.
@@ -137,6 +139,8 @@ class Balls(app_commands.Group):
             Force the countryball to have a specific attack bonus when caught.
         hp_bonus: int | None
             Force the countryball to have a specific health bonus when caught.
+        rare: bool
+            Only spawn from balls with rarity 0.01 to 1.5. Ignored if a specific ball is given.
         """
         # the transformer triggered a response, meaning user tried an incorrect input
         if interaction.response.is_done():
@@ -164,6 +168,8 @@ class Balls(app_commands.Group):
             special_attrs.append(f"atk={atk_bonus}")
         if hp_bonus is not None:
             special_attrs.append(f"hp={hp_bonus}")
+        if rare:
+            special_attrs.append("rare=True")
         if n > 1:
             await self._spawn_bomb(
                 interaction,
@@ -174,6 +180,7 @@ class Balls(app_commands.Group):
                 special,
                 atk_bonus,
                 hp_bonus,
+                rare=rare,
             )
             await log_action(
                 f"{interaction.user} spawned {settings.collectible_name}"
@@ -186,7 +193,7 @@ class Balls(app_commands.Group):
 
         await interaction.response.defer(ephemeral=True, thinking=True)
         if not countryball:
-            ball = await cog.countryball_cls.get_random(interaction.client)
+            ball = await cog.countryball_cls.get_random(interaction.client, rare_only=rare)
         else:
             ball = cog.countryball_cls(interaction.client, countryball)
         ball.special = special
