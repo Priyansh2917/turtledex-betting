@@ -203,9 +203,9 @@ class BallSpawnView(View):
             x
             for x in specials.values()
             # handle null start/end dates with infinity times
-            if (x.start_date or datetime.min.replace(tzinfo=timezone.get_timezone(settings.TIME_ZONE)))
+            if (x.start_date or datetime.min.replace(tzinfo=timezone.pytz.timezone(settings.time_zone)))
             <= timezone.now()
-            <= (x.end_date or datetime.max.replace(tzinfo=timezone.get_timezone(settings.TIME_ZONE)))
+            <= (x.end_date or datetime.max.replace(tzinfo=timezone.pytz.timezone(settings.time_zone)))
         ]
 
         if not population:
