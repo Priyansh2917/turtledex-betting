@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import discord
 from discord.ui import Button, TextInput, button
-from django.utils import timezone
+from tortoise import timezone
 
 from ballsdex.core.discord import Modal, View
 from ballsdex.core.metrics import caught_balls
@@ -203,9 +203,9 @@ class BallSpawnView(View):
             x
             for x in specials.values()
             # handle null start/end dates with infinity times
-            if (x.start_date or datetime.min.replace(tzinfo=timezone.get_current_timezone()))
+            if (x.start_date or datetime.min.replace(tzinfo=timezone.get_timezone(settings.TIME_ZONE)))
             <= timezone.now()
-            <= (x.end_date or datetime.max.replace(tzinfo=timezone.get_current_timezone()))
+            <= (x.end_date or datetime.max.replace(tzinfo=timezone.get_timezone(settings.TIME_ZONE)))
         ]
 
         if not population:
@@ -243,7 +243,7 @@ class BallSpawnView(View):
             source = string.ascii_uppercase + string.ascii_lowercase + string.ascii_letters
             return "".join(random.choices(source, k=15))
 
-        extension = self.model.wild_card.name.split(".")[-1]
+        extension = self.model.wild_card.split(".")[-1]
         file_name = f"nt_{generate_random_name()}.{extension}"
         try:
             permissions = channel.permissions_for(channel.guild.me)
@@ -255,8 +255,13 @@ class BallSpawnView(View):
                     emoji=self.bot.get_emoji(self.model.emoji_id),
                 )
 
+                path = self.model.wild_card
+                # if the path is not root-relative, assume it's in the media directory
+                if not (path.startswith("./") or path.startswith("/") or "\\" in path):
+                    path = "./admin_panel/media/" + path
+
                 self.message = await channel.send(
-                    spawn_message, view=self, file=discord.File(self.model.wild_card.path, filename=file_name)
+                    spawn_message, view=self, file=discord.File(path, filename=file_name)
                 )
                 return True
             else:

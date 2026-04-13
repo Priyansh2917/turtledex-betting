@@ -8,6 +8,7 @@ import yaml
 
 if TYPE_CHECKING:
     from pathlib import Path
+    from ballsdex.core.models import PromptMessage
 
 log = logging.getLogger("ballsdex.settings")
 
@@ -136,6 +137,7 @@ class Settings:
     slow_messages: list[str] = field(default_factory=list)
 
     catch_button_label: str = "Catch me!"
+    time_zone: str = "UTC"
 
     def get_random_message(self, type: "PromptMessage.PromptType") -> str:
         from ballsdex.core.models import PromptMessage
@@ -158,6 +160,7 @@ def read_settings(path: "Path"):
     content = yaml.load(path.read_text(encoding="utf-8"), yaml.Loader)
 
     settings.bot_token = content["discord-token"]
+    settings.time_zone = content.get("time-zone", "UTC")
     settings.gateway_url = content.get("gateway-url")
     settings.shard_count = content.get("shard-count")
     settings.prefix = str(content.get("text-prefix") or "b.")

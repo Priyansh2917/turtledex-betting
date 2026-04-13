@@ -40,7 +40,7 @@ async def save_file(attachment: discord.Attachment) -> Path:
         path = Path(f"./admin_panel/media/{match.group(1)}-{i}{match.group(2)}")
         i = i + 1
     await attachment.save(path)
-    return path.relative_to("./admin_panel/media/")
+    return path
 
 
 class Balls(app_commands.Group):
@@ -185,7 +185,7 @@ class Balls(app_commands.Group):
             await log_action(
                 f"{interaction.user} spawned {settings.collectible_name}"
                 f" {countryball or 'random'} {n} times in {channel or interaction.channel}"
-                + (f" ({", ".join(special_attrs)})." if special_attrs else "."),
+                + (f" ({', '.join(special_attrs)})." if special_attrs else "."),
                 interaction.client,
             )
 
@@ -208,7 +208,7 @@ class Balls(app_commands.Group):
             await log_action(
                 f"{interaction.user} spawned {settings.collectible_name} {ball.name} "
                 f"in {channel or interaction.channel}"
-                + (f" ({", ".join(special_attrs)})." if special_attrs else "."),
+                + (f" ({', '.join(special_attrs)})." if special_attrs else "."),
                 interaction.client,
             )
 

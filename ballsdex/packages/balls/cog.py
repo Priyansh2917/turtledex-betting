@@ -977,7 +977,7 @@ class Balls(commands.GroupCog, group_name=settings.players_group_cog_name):
         special_emojis = {x.name: x.emoji for x in all_specials}
 
         desc = (
-            f"**Total**: {counts["total"]:,} ({counts["total"] - counts["traded"]:,} caught, "
+            f"**Total**: {counts['total']:,} ({counts['total'] - counts['traded']:,} caught, "
             f"{counts['traded']:,} received from trade)\n"
             f"**Total Specials**: {counts['specials']:,}\n\n"
         )
@@ -985,7 +985,7 @@ class Balls(commands.GroupCog, group_name=settings.players_group_cog_name):
             desc += "**Specials**:\n"
         for special in sorted(specials, key=lambda x: x["count"], reverse=True):
             emoji = special_emojis.get(special["special__name"], "")
-            desc += f"{emoji} {special['special__name']}: {special["count"]:,}\n"
+            desc += f"{emoji} {special['special__name']}: {special['count']:,}\n"
 
         embed = discord.Embed(
             title=f"Collection of {countryball.country}" if countryball else "Total Collection",
@@ -996,8 +996,11 @@ class Balls(commands.GroupCog, group_name=settings.players_group_cog_name):
             name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url
         )
         if countryball:
-            file_location = "./admin_panel/media/" + countryball.wild_card
-            file = discord.File(file_location, filename="countryball.png")
+            path = countryball.wild_card
+            # if the path is not root-relative, assume it's in the media directory
+            if not (path.startswith("./") or path.startswith("/") or "\\" in path):
+                path = "./admin_panel/media/" + path
+            file = discord.File(path, filename="countryball.png")
             embed.set_thumbnail(url="attachment://countryball.png")
             await interaction.followup.send(embed=embed, file=file)
         else:
